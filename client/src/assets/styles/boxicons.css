@@ -1,0 +1,39 @@
+@import url('https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css');
+
+/* Boxicons 基础样式 */
+.bx {
+    font-family: 'boxicons' !important;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    line-height: 1;
+    display: inline-block;
+    text-transform: none;
+    speak: none;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* 评分星星图标样式 */
+.product-rating .bx.bxs-star {
+    color: #ffc600;
+    font-size: 16px;
+}
+
+/* 按钮图标样式 */
+.product-btn-group .button .bx {
+    font-size: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Buy Now 按钮图标 */
+.product-btn-group .buy-now .bx.bxs-zap {
+    color: #ffffff;
+}
+
+/* Add to Cart 按钮图标 */
+.product-btn-group .add-cart .bx.bxs-cart {
+    color: inherit;
+} 
