@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Product = require('./models/Product'); // 假設 Product 模型定義在 Product.js 文件中
 
 mongoose.set('strictQuery', true);
-mongoose.connect('mongodb://localhost:27017/kitchen-shop', {
+mongoose.connect('mongodb://mongodb:27017/kitchen-shop', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
