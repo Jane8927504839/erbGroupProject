@@ -42,31 +42,38 @@
 
 <script>
 import { ref } from 'vue'
-import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 
 export default {
   name: 'LoginPage',
   setup() {
-    const store = useStore()
     const router = useRouter()
     const email = ref('')
     const password = ref('')
 
     const handleSubmit = async () => {
       try {
-        const response = await store.dispatch('auth/login', {
-          email: email.value,
-          password: password.value
-        })
-        
-        // 保存 token 到 localStorage
-        localStorage.setItem('token', response.token)
-        
-        // 登入成功後跳轉到首頁
-        router.push('/')
+        const response = await fetch('/api/users/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: email.value,
+            password: password.value
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message);
+        }
+
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        router.push('/');
       } catch (error) {
-        alert(error.message || '登入失敗')
+        alert(error.message || '登入失敗');
       }
     }
 

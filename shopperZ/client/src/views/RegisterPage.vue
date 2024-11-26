@@ -37,6 +37,7 @@
                   >
                 </div>
                 <button type="submit" class="btn btn-primary w-100">註冊</button>
+                <div v-if="errorMessage" class="alert alert-danger mt-3">{{ errorMessage }}</div>
               </form>
             </div>
           </div>
@@ -47,13 +48,11 @@
 
 <script>
 import { ref } from 'vue'
-import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 
 export default {
   name: 'RegisterPage',
   setup() {
-    const store = useStore()
     const router = useRouter()
     const username = ref('')
     const email = ref('')
@@ -62,14 +61,32 @@ export default {
 
     const handleSubmit = async () => {
       try {
-        await store.dispatch('auth/register', {
-          username: username.value,
-          email: email.value,
-          password: password.value
-        })
-        router.push('/login')
+        const response = await fetch('/api/users/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: username.value,
+            email: email.value,
+            password: password.value
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          // 顯示第一個錯誤訊息
+          if (error.errors && error.errors.length > 0) {
+            errorMessage.value = error.errors[0].msg;
+          } else {
+            errorMessage.value = error.message;
+          }
+          return;
+        }
+
+        router.push('/login');
       } catch (error) {
-        errorMessage.value = error.response?.data?.message || '註冊失敗'
+        errorMessage.value = error.message || '註冊失敗';
       }
     }
 

@@ -1,32 +1,28 @@
 <template>
   <div class="home-page">
     <header>
-      <div class="logo"><a href="#">廚具商城</a></div>
+      <div class="logo">
+        <router-link to="/">廚具商城</router-link>
+      </div>
       <div class="menu">
         <a href="#" @click.prevent="closeMenu">
           <ion-icon name="close" class="close"></ion-icon>
         </a>
         <ul>
-          <li><a href="#" class="under">首頁</a></li>
-          <li><a href="#" class="under">商店</a></li>
-          <li><a href="#" class="under">我們的產品</a></li>
-          <li><a href="#" class="under">聯繫我們</a></li>
-          <li><a href="#" class="under">關於我們</a></li>
+          <li><a href="#" class="under" @click.prevent="handleLogout">退出登錄</a></li>
+          <li><router-link to="/products" class="under">所有商品</router-link></li>
+          <li><router-link to="/orders" class="under">訂單管理</router-link></li>
+          <li><router-link to="/cart" class="under">購物車</router-link></li>
+          <li><router-link to="/profile" class="under">個人用戶管理</router-link></li>
         </ul>
-      </div>
-      <div class="search">
-        <a href="">
-          <input type="text" placeholder="搜索產品" id="input">
-          <ion-icon class="s" name="search"></ion-icon>
-        </a>
       </div>
       <div class="heading">
         <ul>
-          <li><a href="#" class="under">首頁</a></li>
-          <li><a href="#" class="under">商店</a></li>
-          <li><a href="#" class="under">我們的產品</a></li>
-          <li><a href="#" class="under">聯繫我們</a></li>
-          <li><a href="#" class="under">關於我們</a></li>
+          <li><a href="#" class="under" @click.prevent="handleLogout">退出登錄</a></li>
+          <li><router-link to="/products" class="under">所有商品</router-link></li>
+          <li><router-link to="/orders" class="under">訂單管理</router-link></li>
+          <li><router-link to="/cart" class="under">購物車</router-link></li>
+          <li><router-link to="/profile" class="under">個人用戶管理</router-link></li>
         </ul>
       </div>
       <div class="heading1" @click="openMenu">
@@ -141,17 +137,39 @@
 
 <script>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'HomePage',
   setup() {
+    const router = useRouter()
     const products = ref([])
 
     const loadProducts = async () => {
       try {
-        const response = await fetch('/api/products')
+        const token = localStorage.getItem('token')
+        if (!token) {
+          router.push('/login')
+          return
+        }
+
+        const response = await fetch('/api/products', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            router.push('/login')
+            return
+          }
+          throw new Error('載入產品失敗')
+        }
+        
         const data = await response.json()
         products.value = data.products
+        console.log(products.value)
       } catch (error) {
         console.error('載入產品失敗:', error)
       }
@@ -175,12 +193,20 @@ export default {
       }
     }
 
+    const handleLogout = () => {
+      // 清除 token
+      localStorage.removeItem('token')
+      // 跳轉到登錄頁面
+      router.push('/login')
+    }
+
     onMounted(() => {
       loadProducts()
     })
 
     return {
       products,
+      handleLogout,
       openMenu,
       closeMenu,
       handleImageError
@@ -210,6 +236,7 @@ header {
 
 .heading ul {
   display: flex;
+  gap: 20px;
 }
 
 .logo a {
@@ -229,24 +256,18 @@ header {
   list-style: none;
 }
 
-.heading ul li a {
-  margin: 5px;
-  text-decoration: none;
+.heading ul li a,
+.menu ul li a {
   color: white;
+  text-decoration: none;
+  font-size: 16px;
   font-weight: 500;
-  position: relative;
-  margin: 2px 14px;
-  font-size: 18px;
-  transition-duration: 1s;
+  transition: color 0.3s ease;
 }
 
-.heading ul li a:active {
-  color: red;
-}
-
-.heading ul li a:hover {
+.heading ul li a:hover,
+.menu ul li a:hover {
   color: rgb(243, 168, 7);
-  transition-duration: 1s;
 }
 
 .heading ul li a::before {

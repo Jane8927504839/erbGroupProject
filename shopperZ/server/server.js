@@ -7,7 +7,6 @@ const dotenv = require('dotenv');
 const productRoutes = require('./routes/productRoutes');
 const userRoutes = require('./routes/userRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-const cartRoutes = require('./routes/cartRoutes');
 
 dotenv.config();
 const app = express();
@@ -20,7 +19,10 @@ app.use(express.json());
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/cart', cartRoutes);
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+ });
 
 // 错误处理中间件
 app.use((err, req, res, next) => {

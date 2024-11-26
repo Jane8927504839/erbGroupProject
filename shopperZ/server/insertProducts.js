@@ -6,6 +6,10 @@ mongoose.connect('mongodb://mongodb:27017/kitchen-shop', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
+// mongoose.connect('mongodb://localhost:27017/kitchen-shop', {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true
+// });
 
 const products = [
   {
@@ -27,9 +31,7 @@ const products = [
         size: "36cm",
         stock: 24
       }
-    ],
-    ratings: []
-  },
+    ]},
   {
     name: "陶瓷湯鍋",
     category: "炊具",
@@ -49,9 +51,7 @@ const products = [
         size: "8L",
         stock: 12
       }
-    ],
-    ratings: []
-  },
+    ]},
   {
     name: "鑄鐵煎鍋",
     category: "炊具",
@@ -71,9 +71,7 @@ const products = [
         size: "32cm",
         stock: 15
       }
-    ],
-    ratings: []
-  },
+    ]},
   {
     name: "FÄRGKLAR",
     category: "餐具",
@@ -84,6 +82,10 @@ const products = [
       {
         size: "12cm",
         stock: 15
+      },
+      {
+        size: "16cm",
+        stock: 10
       }
     ]
   },
@@ -97,6 +99,10 @@ const products = [
       {
         size: "16cm",
         stock: 10
+      },
+      {
+        size: "20cm",
+        stock: 12
       }
     ]
   },
@@ -110,6 +116,10 @@ const products = [
       {
         size: "12cm",
         stock: 20
+      },
+      {
+        size: "16cm",
+        stock: 15
       }
     ]
   },
@@ -123,6 +133,10 @@ const products = [
       {
         size: "26cm",
         stock: 25
+      },
+      {
+        size: "32cm",
+        stock: 20
       }
     ]
   },
@@ -136,6 +150,10 @@ const products = [
       {
         size: "30cm",
         stock: 18
+      },
+      {
+        size: "36cm",
+        stock: 20
       }
     ]
   },
@@ -149,6 +167,10 @@ const products = [
       {
         size: "3件套裝",
         stock: 12
+      },
+      {
+        size: "5件套裝",
+        stock: 20
       }
     ]
   },
@@ -162,6 +184,10 @@ const products = [
       {
         size: "3件套裝",
         stock: 30
+      },
+      {
+        size: "5件套裝",
+        stock: 20
       }
     ]
   },
@@ -175,6 +201,10 @@ const products = [
       {
         size: "5件套裝",
         stock: 8
+      },
+      {
+        size: "7件套裝",
+        stock: 12
       }
     ]
   },
@@ -188,6 +218,10 @@ const products = [
       {
         size: "31cm",
         stock: 50
+      },
+      {
+        size: "36cm",
+        stock: 40
       }
     ]
   },
@@ -201,6 +235,10 @@ const products = [
       {
         size: "32cm",
         stock: 45
+      },
+      {
+        size: "36cm",
+        stock: 40
       }
     ]
   },
@@ -214,6 +252,10 @@ const products = [
       {
         size: "28cm",
         stock: 35
+      },
+      {
+        size: "32cm",
+        stock: 40
       }
     ]
   },
@@ -227,6 +269,10 @@ const products = [
       {
         size: "31cm",
         stock: 40
+      },
+      {
+        size: "36cm",
+        stock: 35
       }
     ]
   },
@@ -240,6 +286,10 @@ const products = [
       {
         size: "33cm",
         stock: 22
+      },
+      {
+        size: "36cm",
+        stock: 25
       }
     ]
   },
@@ -253,6 +303,10 @@ const products = [
       {
         size: "31cm",
         stock: 18
+      },
+      {
+        size: "36cm",
+        stock: 20
       }
     ]
   },
@@ -266,6 +320,10 @@ const products = [
       {
         size: "32cm",
         stock: 20
+      },
+      {
+        size: "36cm",
+        stock: 25
       }
     ]
   },
@@ -279,6 +337,10 @@ const products = [
       {
         size: "23cm",
         stock: 25
+      },
+      {
+        size: "28cm",
+        stock: 30
       }
     ]
   },
@@ -292,6 +354,10 @@ const products = [
       {
         size: "17.5cm",
         stock: 30
+      },
+      {
+        size: "20cm",
+        stock: 25
       }
     ]
   },
@@ -305,6 +371,10 @@ const products = [
       {
         size: "34cm",
         stock: 15
+      },
+      {
+        size: "38cm",
+        stock: 18
       }
     ]
   },
@@ -318,6 +388,10 @@ const products = [
       {
         size: "18cm",
         stock: 40
+      },
+      {
+        size: "24cm",
+        stock: 35
       }
     ]
   },
@@ -331,6 +405,10 @@ const products = [
       {
         size: "33cm",
         stock: 12
+      },
+      {
+        size: "36cm",
+        stock: 17
       }
     ]
   },
@@ -344,6 +422,10 @@ const products = [
       {
         size: "3件套裝",
         stock: 10
+      },
+      {
+        size: "5件套裝",
+        stock: 15
       }
     ]
   },
@@ -357,6 +439,10 @@ const products = [
       {
         size: "18cm",
         stock: 15
+      },
+      {
+        size: "22cm",
+        stock: 12
       }
     ]
   },
@@ -370,6 +456,10 @@ const products = [
       {
         size: "20cm",
         stock: 20
+      },
+      {
+        size: "24cm",
+        stock: 24
       }
     ]
   },
@@ -381,8 +471,12 @@ const products = [
     images: ["/image/0710422_PE727545_S4.jpg"],
     variants: [
       {
-        size: "2件套裝",
-        stock: 25
+        size: "一份套裝",
+        stock: 40
+      },
+      {
+        size: "兩份套裝",
+        stock: 20
       }
     ]
   },
@@ -396,6 +490,10 @@ const products = [
       {
         size: "28cm",
         stock: 5
+      },
+      {
+        size: "32cm",
+        stock: 7
       }
     ]
   },
@@ -409,6 +507,10 @@ const products = [
       {
         size: "5把刀",
         stock: 8
+      },
+      {
+        size: "8把刀",
+        stock: 10
       }
     ]
   },
@@ -422,6 +524,10 @@ const products = [
       {
         size: "16cm",
         stock: 10
+      },
+      {
+        size: "20cm",
+        stock: 12
       }
     ]
   },
@@ -435,6 +541,10 @@ const products = [
       {
         size: "45x36cm",
         stock: 7
+      },
+      {
+        size: "50x40cm",
+        stock: 10
       }
     ]
   },
@@ -448,6 +558,10 @@ const products = [
       {
         size: "28cm",
         stock: 12
+      },
+      {
+        size: "32cm",
+        stock: 14
       }
     ]
   },
@@ -461,6 +575,10 @@ const products = [
       {
         size: "28x28cm",
         stock: 6
+      },
+      {
+        size: "32x32cm",
+        stock: 9
       }
     ]
   }

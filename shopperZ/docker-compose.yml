@@ -9,6 +9,8 @@ services:
       - "80:80"
     depends_on:
       - backend
+    volumes:
+      - npm_cache:/app/.npm-cache
     networks:
       - app-network
 
@@ -22,6 +24,8 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017/kitchen-shop
       - JWT_SECRET=your_jwt_secret
       - PORT=5003
+    volumes:
+      - backend_node_modules:/app/node_modules
     depends_on:
       - mongodb
     networks:
@@ -41,4 +45,6 @@ networks:
     driver: bridge
 
 volumes:
+  npm_cache:
+  backend_node_modules:
   mongodb_data: 

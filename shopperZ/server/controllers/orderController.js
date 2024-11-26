@@ -1,74 +1,101 @@
 const Order = require('../models/Order');
-const Product = require('../models/Product');
-const { validationResult } = require('express-validator');
 
 exports.createOrder = async (req, res) => {
   try {
-    const { items, shippingAddress } = req.body;
+    const { items, totalAmount, shippingAddress } = req.body;
     
-    // 驗證庫存並計算總價
-    let totalAmount = 0;
-    for (let item of items) {
-      const product = await Product.findById(item.product);
-      if (!product) {
-        return res.status(404).json({ message: `產品 ${item.product} 未找到` });
-      }
-      if (product.stock < item.quantity) {
-        return res.status(400).json({ message: `產品 ${product.name} 庫存不足` });
-      }
-      totalAmount += product.price * item.quantity;
-      
-      // 更新庫存
-      product.stock -= item.quantity;
-      await product.save();
+    // 驗證送貨地址
+    if (!shippingAddress || !shippingAddress.street || !shippingAddress.city || 
+        !shippingAddress.state || !shippingAddress.zipCode) {
+      return res.status(400).json({ message: '送貨地址信息不完整' });
     }
 
+    // 驗證訂單項目
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: '訂單項目不能為空' });
+    }
+
+    // 驗證總金額
+    if (!totalAmount || totalAmount <= 0) {
+      return res.status(400).json({ message: '訂單金額無效' });
+    }
+    
     const order = new Order({
-      user: req.userData.userId,
-      items,
+      userId: req.userData.userId,
+      items: items.map(item => ({
+        productId: item.productId,
+        name: item.name,
+        price: item.price,
+        size: item.size,
+        quantity: item.quantity,
+        image: item.image
+      })),
       totalAmount,
-      shippingAddress
+      shippingAddress: {
+        street: shippingAddress.street,
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        zipCode: shippingAddress.zipCode
+      },
+      status: 'pending',
+      createdAt: new Date()
     });
 
     await order.save();
-    
     res.status(201).json(order);
   } catch (error) {
-    res.status(500).json({ message: '伺服器錯誤' });
+    console.error('創建訂單失敗:', error);
+    res.status(500).json({ message: '創建訂單失敗' });
   }
 };
 
 exports.getUserOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.userData.userId })
-      .populate('items.product')
-      .sort('-createdAt');
+    const orders = await Order.find({ userId: req.userData.userId })
+      .sort({ createdAt: -1 });
     
-    res.json(orders);
+    // 格式化訂單數據
+    const formattedOrders = orders.map(order => ({
+      _id: order._id,
+      items: order.items,
+      totalAmount: order.totalAmount,
+      shippingAddress: {
+        street: order.shippingAddress.street,
+        city: order.shippingAddress.city,
+        state: order.shippingAddress.state,
+        zipCode: order.shippingAddress.zipCode
+      },
+      status: order.status,
+      createdAt: order.createdAt
+    }));
+    
+    res.json(formattedOrders);
   } catch (error) {
-    res.status(500).json({ message: '伺服器錯誤' });
+    console.error('獲取訂單失敗:', error);
+    res.status(500).json({ message: '獲取訂單失敗' });
   }
 };
 
-exports.updateOrderStatus = async (req, res) => {
+exports.deleteOrder = async (req, res) => {
   try {
-    if (req.userData.role !== 'admin') {
-      return res.status(403).json({ message: '沒有權限執行此操作' });
-    }
-
-    const { status } = req.body;
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
+    const order = await Order.findOne({
+      _id: req.params.id,
+      userId: req.userData.userId
+    });
 
     if (!order) {
-      return res.status(404).json({ message: '訂單未找到' });
+      return res.status(404).json({ message: '訂單不存在' });
     }
 
-    res.json(order);
+    // 只允許刪除 pending 狀態的訂單
+    if (order.status !== 'pending') {
+      return res.status(400).json({ message: '只能刪除待處理的訂單' });
+    }
+
+    await Order.findByIdAndDelete(order._id);
+    res.json({ message: '訂單已刪除' });
   } catch (error) {
-    res.status(500).json({ message: '伺服器錯誤' });
+    console.error('刪除訂單失敗:', error);
+    res.status(500).json({ message: '刪除訂單失敗' });
   }
 };

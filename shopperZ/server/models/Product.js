@@ -30,15 +30,7 @@ const productSchema = new mongoose.Schema({
   },
   description: String,
   images: [String],
-  variants: [variantSchema], // 使用 variants 字段來存儲不同尺寸和庫存信息
-  ratings: [{
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    rating: Number,
-    comment: String
-  }]
+  variants: [variantSchema]
 }, {
   timestamps: true
 });

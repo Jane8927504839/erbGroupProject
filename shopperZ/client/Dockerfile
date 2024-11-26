@@ -1,11 +1,20 @@
 # 構建階段
 FROM node:16 as build-stage
 WORKDIR /app
-RUN npm install -g @vue/cli
+
 COPY package*.json ./
-RUN npm install
+
+# 設置 npm 緩存目錄
+RUN npm config set cache /app/.npm-cache --global
+
+# 安裝依賴
+RUN npm install -g @vue/cli
+RUN npm ci
+
+# 複製其餘源代碼
 COPY . .
-# RUN chmod +x node_modules/.bin/vue-cli-service  # 確保 vue-cli-service 可執行
+
+# 構建應用
 RUN npm run build
 
 # 生產階段

@@ -69,12 +69,12 @@
 
 <script>
 import { ref, onMounted, watch } from 'vue'
-import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'ProductList',
   setup() {
-    const store = useStore()
+    const router = useRouter()
     const products = ref([])
     const selectedCategory = ref('')
     const sortBy = ref('newest')
@@ -82,16 +82,33 @@ export default {
 
     const loadProducts = async () => {
       try {
-        const response = await fetch(`/api/products?category=${selectedCategory.value}&sort=${sortBy.value}`)
+        const token = localStorage.getItem('token')
+        if (!token) {
+          router.push('/login')
+          return
+        }
+
+        const response = await fetch(
+          `/api/products?category=${selectedCategory.value}&sort=${sortBy.value}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        )
+        
+        if (!response.ok) {
+          throw new Error('加載產品失敗')
+        }
+        
         const data = await response.json()
         products.value = data.products
       } catch (error) {
         console.error('加載產品失敗:', error)
+        if (error.message.includes('401')) {
+          router.push('/login')
+        }
       }
-    }
-
-    const addToCart = (product) => {
-      store.dispatch('cart/addItem', product)
     }
 
     onMounted(() => {
@@ -104,8 +121,7 @@ export default {
       products,
       selectedCategory,
       sortBy,
-      categories,
-      addToCart
+      categories
     }
   }
 }

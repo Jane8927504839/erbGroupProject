@@ -40,6 +40,18 @@ const routes = [
     path: '/register',
     name: 'RegisterPage',
     component: RegisterPage
+  },
+  {
+    path: '/orders',
+    name: 'OrdersPage',
+    component: () => import('../views/OrdersPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'ProfilePage',
+    component: () => import('../views/ProfilePage.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
@@ -48,26 +60,39 @@ const router = createRouter({
   routes
 })
 
-// 全局路由守衛
-// router.beforeEach((to, from, next) => {
-//   const token = localStorage.getItem('token');
+// 檢查 token 是否過期
+function isTokenExpired(token) {
+  if (!token) return true;
   
-  // 登錄和註冊頁面不需要驗證
-  // if (to.path === '/login' || to.path === '/register') {
-  //   if (token) {
-  //     // 已登錄用戶訪問登錄/註冊頁面，重定向到首頁
-  //     next('/');
-  //   } else {
-  //     next();
-  //   }
-  // } else {
-  //   // 其他頁面需要驗證
-  //   if (!token) {
-  //     next('/login');
-  //   } else {
-  //     next();
-  //   }
-  // }
-// })
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(window.atob(base64));
+    
+    // 檢查是否過期
+    return payload.exp * 1000 < Date.now();
+  } catch (error) {
+    return true;
+  }
+}
+
+// 全局路由守衛
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token');
+  
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // 需要身份驗證的路由
+    if (!token || isTokenExpired(token)) {
+      // token 不存在或已過期，重定向到登入頁面
+      next('/login');
+    } else {
+      // token 有效，允許訪問
+      next();
+    }
+  } else {
+    // 不需要身份驗證的路由
+    next();
+  }
+});
 
 export default router

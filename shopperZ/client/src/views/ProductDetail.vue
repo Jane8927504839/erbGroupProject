@@ -28,8 +28,16 @@
         </div>
         <div class="col-6">
           <div class="breadcrumb">
-            <span><router-link to="/">返回首頁</router-link></span>
-            <span><router-link to="/products">篩選商品</router-link></span>
+            <span>
+              <router-link to="/" class="nav-link">
+                <strong>返回首頁</strong>
+              </router-link>
+            </span>
+            <span>
+              <router-link to="/products" class="nav-link">
+                <strong>篩選商品</strong>
+              </router-link>
+            </span>
             <span class="active">{{ product.name }}</span>
           </div>
 
@@ -37,22 +45,21 @@
             <div class="product-title">
               <h2>{{ product.name }}</h2>
             </div>
-            <div class="product-rating">
-              <span v-for="n in averageRating" :key="n">
-                <i class='bx bxs-star'></i>
-              </span>
-              <span class="review">({{ product.ratings?.length || 0 }} 評價)</span>
-            </div>
             <div class="product-price">
               <span class="offer-price">HKD {{ product.price?.toFixed(2) }}</span>
             </div>
 
             <div class="product-details">
+              <div class="upload-time mb-2">
+                <small class="text-muted">
+                  上架時間: {{ formatDate(product.createdAt) }}
+                </small>
+              </div>
               <h3>商品描述</h3>
               <p>{{ product.description }}</p>
             </div>
             <div class="product-size">
-              <h4>Size</h4>
+              <h4>選擇商品類型</h4>
               <div class="size-layout">
                 <div v-for="variant in product.variants" :key="variant.size">
                   <input 
@@ -82,7 +89,7 @@
                 @click="handleBuyNow"
               >
                 <i class='bx bxs-zap'></i>
-                <span>Buy Now</span>
+                <span>立即購買</span>
               </div>
               <div 
                 class="button add-cart"
@@ -90,7 +97,7 @@
                 @click="handleAddToCart"
               >
                 <i class='bx bxs-cart'></i>
-                <span>Add to Cart</span>
+                <span>加入購物車</span>
               </div>
             </div>
           </div>
@@ -101,14 +108,10 @@
 </template>
 
 <script>
-import { useStore } from 'vuex'
-import '../assets/styles/boxicons.css'
-
 export default {
   name: 'ProductDetails',
   setup() {
-    const store = useStore()
-    return { store }
+    return {}
   },
   data() {
     return {
@@ -118,7 +121,7 @@ export default {
         description: '',
         images: [],
         variants: [],
-        ratings: []
+        createdAt: null
       },
       selectedSize: null,
       currentImage: null,
@@ -127,11 +130,6 @@ export default {
     }
   },
   computed: {
-    averageRating() {
-      if (!this.product.ratings?.length) return 0;
-      const sum = this.product.ratings.reduce((acc, curr) => acc + curr.rating, 0);
-      return Math.round(sum / this.product.ratings.length);
-    },
     currentVariant() {
       return this.product.variants?.find(v => v.size === this.selectedSize);
     },
@@ -142,18 +140,37 @@ export default {
   methods: {
     async loadProduct() {
       try {
-        const response = await fetch(`/api/products/${this.$route.params.id}`);
-        if (!response.ok) throw new Error('商品載入失敗');
+        const token = localStorage.getItem('token')
+        if (!token) {
+          this.$router.push('/login')
+          return
+        }
+
+        const response = await fetch(
+          `/api/products/${this.$route.params.id}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
         
-        const data = await response.json();
-        this.product = data;
-        // 設置第一張圖片為主圖
-        this.currentImage = this.product.images[0];
+        if (!response.ok) {
+          if (response.status === 401) {
+            this.$router.push('/login')
+            return
+          }
+          throw new Error('商品載入失敗')
+        }
+        
+        const data = await response.json()
+        this.product = data
+        this.currentImage = this.product.images[0]
       } catch (error) {
-        console.error('載入商品失敗:', error);
-        this.error = error.message;
+        console.error('載入商品失敗:', error)
+        this.error = error.message
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
     
@@ -174,7 +191,6 @@ export default {
       if (!this.canPurchase) return;
       
       try {
-        // 準備要添加到購物車的商品數據
         const cartItem = {
           productId: this.product._id,
           name: this.product.name,
@@ -182,29 +198,45 @@ export default {
           image: this.product.images[0],
           size: this.selectedSize,
           quantity: 1
+        };
+        
+        // 獲取現有購物車數據
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        
+        // 檢查是否已存在相同商品和尺寸
+        const existingItemIndex = cart.findIndex(
+          item => item.productId === cartItem.productId && item.size === cartItem.size
+        );
+        
+        if (existingItemIndex > -1) {
+          // 更新數量
+          cart[existingItemIndex].quantity += 1;
+        } else {
+          // 添加新商品
+          cart.push(cartItem);
         }
         
-        // 調用後端 API
-        const response = await fetch('/api/cart/add', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify(cartItem)
-        });
-
-        if (!response.ok) throw new Error('添加到購物車失敗');
+        // 保存到 localStorage
+        localStorage.setItem('cart', JSON.stringify(cart));
         
-        // 更新前端購物車狀態
-        await this.store.dispatch('cart/addItem', cartItem);
+        // 跳轉到購物車頁面
+        this.$router.push('/cart');
         
-        // 顯示成功消息
-        alert('成功添加到購物車！');
       } catch (error) {
         console.error('添加到購物車失敗:', error);
         alert('添加到購物車失敗，請稍後再試');
       }
+    },
+    formatDate(dateString) {
+      if (!dateString) return '暫無資料';
+      const date = new Date(dateString);
+      return date.toLocaleString('zh-HK', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     }
   },
   created() {
@@ -263,26 +295,44 @@ export default {
 }
 
 /** Breadcrumb **/
-.single-product .breadcrumb{
-    background: #48484810;
-    padding: 8px 4px;
-    border-radius: 8px;
-    font-size: 15px;
+.single-product .breadcrumb {
+  background: #bf905340;
+  padding: 8px 4px;
+  border-radius: 8px;
+  font-size: 15px;
 }
 
-.breadcrumb span{
-    display: inline-flex;
-    flex-direction: row;
-    gap: 8px;
-    margin-left: 8px;
-}
-.breadcrumb span:not(:last-child)::after{
-    content: '/';
+.breadcrumb span {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 8px;
+  margin-left: 8px;
 }
 
-.breadcrumb span a{
-    text-decoration: none;
-    color: var(--primary-color);
+.breadcrumb span:not(:last-child)::after {
+  content: '/';
+  color: #c89619;
+  margin-left: 8px;
+}
+
+.breadcrumb .nav-link {
+  text-decoration: none;
+  color: var(--primary-color);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.breadcrumb .nav-link:hover {
+  color: #e76f06;
+  transform: translateY(-1px);
+}
+
+.breadcrumb .nav-link strong {
+  font-weight: 700;
+}
+
+.breadcrumb .active {
+  color: #00000080;
 }
 
 /** Product Image **/
@@ -402,25 +452,56 @@ export default {
 .product-size .size-layout .size-input{
     display: none;
 }
+
+/* 修改標籤樣式 */
 .product-size .size-layout .size{
-    background: var(--bg-grey);
+    background: #fbe6c4;  /* 淺橘色背景 */
     padding: 10px 18px;
-    border: 1px solid var(--bg-grey);
+    border: 2px solid transparent;  /* 透明邊框，為選中狀態做準備 */
     border-radius: 4px;
     margin-left: 0px;
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
-}
-.product-size .size-layout .size:hover{
-    border: 1px solid var(--grey);
+    transition: all 0.3s ease;  /* 添加過渡效果 */
 }
 
+/* 懸停效果 */
+.product-size .size-layout .size:hover{
+  background: #FFB74D;  /* 深一點的橘色背景*/
+}
+
+/* 選中狀態 */
 .product-size .size-layout input[type="radio"]:checked + .size {
-    background-color: #f5f5f5;
-    border: 1px solid var(--grey);
-    color: var(--grey);
-    box-shadow: 0 3px 6px var(--shadow);
+    background-color: #fbe6c4;  /* 保持淺橘色背景 */
+    border: 2px solid #000;    /* 黑色粗邊框 */
+    color: #000;               /* 黑色文字 */
+    box-shadow: 0 4px 8px rgba(43, 43, 43, 0.482);  /* 輕微陰影 */
+}
+
+/* 禁用狀態 */
+.size-layout .size-input:disabled + .size {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;  /* 灰色背景 */
+    border-color: transparent;
+}
+
+/* 庫存信息樣式 */
+.stock-info {
+    font-size: 12px;
+    color: #666;
+    margin-left: 4px;
+}
+
+.out-of-stock {
+    color: #ff4444;
+}
+
+.button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 /** Divider **/
@@ -458,14 +539,14 @@ export default {
 
 .product-btn-group .buy-now{
     background-color: var(--accent-color);
-    color: #fff;
+    color: #fafafa00;
     border: 1px solid var(--accent-color);
     border-radius: 4px;
     cursor: pointer;
 }
 
 .product-btn-group .buy-now:hover{
-    box-shadow: 0 3px 6px var(--shadow);
+    box-shadow:0 4px 8px rgba(43, 43, 43, 0);
 }
 
 .product-btn-group .add-cart{
@@ -476,32 +557,9 @@ export default {
     cursor: pointer;
 }
 .product-btn-group .add-cart:hover {
-    box-shadow: 0 3px 6px var(--shadow);
+    box-shadow: 0 4px 8px rgba(43, 43, 43, 0.482);
     background: #333333;
     color: #fff;
-}
-
-/** Stock Info **/
-.stock-info {
-    font-size: 12px;
-    color: var(--grey);
-    margin-left: 4px;
-}
-
-.out-of-stock {
-    color: #ff4444;
-}
-
-.size-layout .size-input:disabled + .size {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: #f5f5f5;
-}
-
-.button.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
 }
 
 /** Responsive Layouts **/
@@ -635,5 +693,18 @@ export default {
 .cart-button:hover {
   background-color: #333;
   transform: translateY(-2px);
+}
+
+.upload-time {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.text-muted {
+  color: #6c757d;
 }
 </style>

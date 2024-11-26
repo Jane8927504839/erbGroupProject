@@ -4,7 +4,7 @@ const orderController = require('../controllers/orderController');
 const auth = require('../middleware/auth');
 
 router.post('/', auth, orderController.createOrder);
-router.get('/my-orders', auth, orderController.getUserOrders);
-router.patch('/:id/status', auth, orderController.updateOrderStatus);
+router.get('/', auth, orderController.getUserOrders);
+router.delete('/:id', auth, orderController.deleteOrder);
 
 module.exports = router; 

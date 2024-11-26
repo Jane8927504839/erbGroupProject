@@ -1,6 +1,25 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+const addressSchema = new mongoose.Schema({
+  street: {
+    type: String,
+    required: true
+  },
+  city: {
+    type: String,
+    required: true
+  },
+  state: {
+    type: String,
+    required: true
+  },
+  zipCode: {
+    type: String,
+    required: true
+  }
+});
+
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -16,23 +35,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
-  },
-  addresses: [{
-    street: String,
-    city: String,
-    state: String,
-    zipCode: String
-  }]
+  addresses: [addressSchema],
+  phone: {
+    type: String
+  }
 });
 
-// 密码加密中间件
-userSchema.pre('save', async function(next) {
-  if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
-  next();
-}); 
+const User = mongoose.model('User', userSchema);
+
+module.exports = User;
