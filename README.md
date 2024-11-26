@@ -68,7 +68,7 @@ cd server
 npm install
 ```
 
-確保你的本地 MongoDB 服務器正在運行。
+確保你的本地 MongoDB 服務器正在運行。docker 中使用的 MongoDB 為 5.0 版本。如果遇到問題，請嘗試降低版本。
 
 運行以下命令啟動後端伺服器：
 
@@ -77,6 +77,10 @@ npm run dev
 ```
 
 後端伺服器將運行在 http://localhost:5003。
+
+### 初始化產品數據
+
+進入 server 目錄，修改數據庫連結配置後運行insertProducts.js
 
 ### 前後端同時啟動
 
