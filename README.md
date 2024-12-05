@@ -29,7 +29,7 @@ project/
 在項目根目錄下運行以下命令來啟動專案：
 
 ```sh
-docker-compose up -d
+docker-compose up --build
 ```
 這將啟動前端、後端和 MongoDB 服務
 
@@ -40,6 +40,32 @@ docker-compose up -d
 ```sh
 docker-compose down
 ```
+
+### 常見問題處理
+
+如果 `docker-compose up --build` 運行後應用出現問題，可以嘗試以下步驟：
+
+1. 完全清理環境：
+```sh
+# 刪除所有相關的容器、網絡和卷
+docker-compose down -v --remove-orphans
+```
+
+2. 強制重新構建（不使用緩存）：
+```sh
+# 強制重新構建所有容器
+docker-compose build --no-cache
+```
+
+3. 啟動服務：
+```sh
+docker-compose up
+```
+
+這個過程會：
+- 清除所有舊的容器和數據
+- 完全重新構建所有映像，不使用任何緩存
+- 重新創建和啟動所有服務
 
 ## 手動啟動方式
 
@@ -55,7 +81,7 @@ npm install
 運行以下命令啟動前端開發伺服器：
 
 ```sh
-npm run serve
+npm run dev
 ```
 前端開發伺服器將運行在 http://localhost:8080。
 
@@ -78,13 +104,26 @@ npm run dev
 
 後端伺服器將運行在 http://localhost:5003。
 
-### 初始化產品數據
+### 初始化數據
 
-進入 server 目錄，修改數據庫連結配置後運行insertProducts.js
+進入 server 目錄：
+
+1. 初始化管理員賬號：
+```sh
+node insertUser.js
+```
+管理員賬號信息：
+- 郵箱：admin@example.com
+- 密碼：admin123
+
+2. 初始化產品數據：
+```sh
+node insertProducts.js
+```
 
 ### 前後端同時啟動
 
-進入 server 目錄並運行以下命令啟動前後端伺服器
+進入 server 目錄並運行以下命令啟動前後端伺服器：
 
 ```sh
 npm run dev:full

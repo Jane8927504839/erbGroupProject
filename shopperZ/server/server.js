@@ -12,7 +12,10 @@ dotenv.config();
 const app = express();
 
 // 中间件
-app.use(cors());
+app.use(cors({
+  // origin: process.env.CORS_ORIGIN || 'http://frontend:8080',
+  credentials: true
+}));
 app.use(express.json());
 
 // 配置路由
@@ -20,7 +23,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK' });
  });
 

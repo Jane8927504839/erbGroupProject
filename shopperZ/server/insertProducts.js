@@ -107,7 +107,7 @@ const products = [
     ]
   },
   {
-    name: "0713134_PE729282_S4",
+    name: "IDEALISK",
     category: "小电器",
     description: "刨磨器, 不銹鋼 長度:12 厘米,闊度:10 厘米,高度:20 厘米",
     price: 29.9,

@@ -137,12 +137,13 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 export default {
   name: 'ProfilePage',
   setup() {
     const router = useRouter()
+    const route = useRoute()
     const profile = ref({
       username: '',
       email: '',
@@ -157,11 +158,21 @@ export default {
 
     const loadProfile = async () => {
       try {
-        const response = await fetch('/api/users/profile', {
+        const token = localStorage.getItem('token')
+        const userId = route.query.userId // 從 query 參數獲取 userId
+
+        let url = '/api/users/profile'
+        if (userId) {
+          // 如果有 userId，說明是管理員查看其他用戶資料
+          url = `/api/users/profile?userId=${userId}`
+        }
+
+        const response = await fetch(url, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           }
         })
+        
         if (!response.ok) throw new Error('載入個人資料失敗')
         const data = await response.json()
         profile.value = data

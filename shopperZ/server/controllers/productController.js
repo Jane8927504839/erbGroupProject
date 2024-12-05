@@ -49,3 +49,22 @@ exports.getProduct = async (req, res) => {
     res.status(500).json({ message: '伺服器錯誤' });
   }
 };
+
+// 添加健康檢查端點
+exports.healthCheck = async (req, res) => {
+  try {
+    // 可以添加數據庫連接測試
+    await Product.findOne();
+    res.status(200).json({ 
+      status: 'success',
+      message: '服務器運行正常',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(503).json({ 
+      status: 'error',
+      message: '服務器異常',
+      error: error.message 
+    });
+  }
+};

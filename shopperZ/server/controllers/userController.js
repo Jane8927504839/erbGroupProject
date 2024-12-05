@@ -72,10 +72,20 @@ exports.login = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.userData.userId).select('-password');
+    const currentUser = await User.findById(req.userData.userId);
+    let targetUserId = req.userData.userId;
+
+    // 如果是管理員且提供了 userId 查詢參數
+    if (currentUser.role === 'admin' && req.query.userId) {
+      targetUserId = req.query.userId;
+    }
+
+    const user = await User.findById(targetUserId).select('-password');
+    
     if (!user) {
       return res.status(404).json({ message: '用戶不存在' });
     }
+
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: '伺服器錯誤' });
@@ -149,4 +159,15 @@ exports.updatePassword = [
     }
   }
 ];
+
+// 獲取所有用戶列表
+exports.getAllUsers = async (req, res) => {
+  try {
+
+    const users = await User.find({}, 'username role');
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: '伺服器錯誤' });
+  }
+};
 

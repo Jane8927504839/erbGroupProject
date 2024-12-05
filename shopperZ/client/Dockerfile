@@ -1,20 +1,15 @@
 # 構建階段
-FROM node:16 as build-stage
+FROM node:16-alpine as build-stage
 WORKDIR /app
 
 COPY package*.json ./
 
-# 設置 npm 緩存目錄
-RUN npm config set cache /app/.npm-cache --global
+RUN npm install
 
-# 安裝依賴
-RUN npm install -g @vue/cli
-RUN npm ci
-
-# 複製其餘源代碼
 COPY . .
 
-# 構建應用
+EXPOSE 8080
+
 RUN npm run build
 
 # 生產階段

@@ -5,6 +5,9 @@ import ProductDetail from '../views/ProductDetail.vue'
 import CartPage from '../views/CartPage.vue'
 import LoginPage from '../views/LoginPage.vue'
 import RegisterPage from '../views/RegisterPage.vue'
+import UserList from '../views/UserList.vue'
+import ProfilePage from '../views/ProfilePage.vue'
+import HealthPage from '../views/HealthPage.vue'
 
 const routes = [
   {
@@ -49,14 +52,25 @@ const routes = [
   },
   {
     path: '/profile',
-    name: 'ProfilePage',
-    component: () => import('../views/ProfilePage.vue'),
+    name: 'Profile',
+    component: ProfilePage,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/users',
+    name: 'UserList',
+    component: UserList,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/health',
+    name: 'HealthPage',
+    component: HealthPage
   }
 ]
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
 
@@ -69,7 +83,6 @@ function isTokenExpired(token) {
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const payload = JSON.parse(window.atob(base64));
     
-    // 檢查是否過期
     return payload.exp * 1000 < Date.now();
   } catch (error) {
     return true;
@@ -81,16 +94,12 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
   
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    // 需要身份驗證的路由
     if (!token || isTokenExpired(token)) {
-      // token 不存在或已過期，重定向到登入頁面
       next('/login');
     } else {
-      // token 有效，允許訪問
       next();
     }
   } else {
-    // 不需要身份驗證的路由
     next();
   }
 });

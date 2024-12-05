@@ -4,7 +4,7 @@
       <div class="logo">
         <router-link to="/">廚具商城</router-link>
       </div>
-      <div class="menu">
+      <div class="menu" :class="{ visible: isMenuVisible }">
         <a href="#" @click.prevent="closeMenu">
           <ion-icon name="close" class="close"></ion-icon>
         </a>
@@ -14,6 +14,8 @@
           <li><router-link to="/orders" class="under">訂單管理</router-link></li>
           <li><router-link to="/cart" class="under">購物車</router-link></li>
           <li><router-link to="/profile" class="under">個人用戶管理</router-link></li>
+          <li><router-link to="/users" class="under">用戶列表</router-link></li>
+          <li><router-link to="/health" class="under">服務器狀態</router-link></li>
         </ul>
       </div>
       <div class="heading">
@@ -23,10 +25,17 @@
           <li><router-link to="/orders" class="under">訂單管理</router-link></li>
           <li><router-link to="/cart" class="under">購物車</router-link></li>
           <li><router-link to="/profile" class="under">個人用戶管理</router-link></li>
+          <li><router-link to="/users" class="under">用戶列表</router-link></li>
+          <li><router-link to="/health" class="under">服務器狀態</router-link></li>
         </ul>
       </div>
-      <div class="heading1" @click="openMenu">
-        <ion-icon name="menu" class="ham d-block d-lg-none"></ion-icon>
+      <div class="hamburger-menu" @click="openMenu">
+        <!-- <div class="hamburger-icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div> -->
+        <ion-icon name="menu-outline" class="ham"></ion-icon>
       </div>
     </header>
 
@@ -133,9 +142,7 @@
       <div class="footer3">版權所有 © <h4>廚具商城</h4> 2021-2028</div>
     </footer>
   </div>
-</template>
-
-<script>
+</template><script>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -144,6 +151,7 @@ export default {
   setup() {
     const router = useRouter()
     const products = ref([])
+    const isMenuVisible = ref(false)
 
     const loadProducts = async () => {
       try {
@@ -153,25 +161,37 @@ export default {
           return
         }
 
+        console.log('發送請求到:', '/api/products')
         const response = await fetch('/api/products', {
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
           }
         })
         
+        console.log('響應狀態:', response.status)
+        
         if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          console.error('請求失敗:', {
+            status: response.status,
+            statusText: response.statusText,
+            errorData
+          })
+          
           if (response.status === 401) {
             router.push('/login')
             return
           }
-          throw new Error('載入產品失敗')
+          throw new Error(`請求失敗: ${response.status} ${response.statusText}`)
         }
         
         const data = await response.json()
+        console.log('成功獲取數據:', data)
         products.value = data.products
-        console.log(products.value)
       } catch (error) {
-        console.error('載入產品失敗:', error)
+        console.error('完整錯誤信息:', error)
       }
     }
 
@@ -180,17 +200,11 @@ export default {
     }
 
     const openMenu = () => {
-      const menu = document.querySelector('.menu')
-      if (menu) {
-        menu.style.visibility = 'visible'
-      }
+      isMenuVisible.value = true
     }
 
     const closeMenu = () => {
-      const menu = document.querySelector('.menu')
-      if (menu) {
-        menu.style.visibility = 'hidden'
-      }
+      isMenuVisible.value = false
     }
 
     const handleLogout = () => {
@@ -209,7 +223,8 @@ export default {
       handleLogout,
       openMenu,
       closeMenu,
-      handleImageError
+      handleImageError,
+      isMenuVisible
     }
   }
 }
@@ -510,6 +525,26 @@ footer {
 
 .menu {
   visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s, opacity 0.3s linear;
+}
+
+.menu.visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+.menu .close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: white;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.menu .close:hover {
+  color: rgb(243, 168, 7);
 }
 
 .heading1 .ham:active {
@@ -726,10 +761,70 @@ footer {
   transform: translateY(-2px);
 }
 
-/* 在大屏幕上隱藏漢堡菜單圖標 */
-@media screen and (min-width: 1250px) {
-  .heading1 {
-    display: none;
+/* 漢堡菜單圖標樣式 */
+.hamburger-menu {
+  display: none;  /* 默認隱藏 */
+}
+
+.hamburger-menu .ham {
+  color: white;
+  background-color: transparent;
+}
+
+/* 移動設備和平板樣式 (寬度 <= 1250px) */
+@media screen and (max-width: 1250px) {
+  .heading {
+    display: none;  /* 隱藏桌面版菜單 */
+  }
+
+  .hamburger-menu {
+    display: block;  /* 在移動設備上顯示漢堡菜單 */
   }
 }
+
+/* 桌面版樣式 (寬度 > 1250px) */
+@media screen and (min-width: 1251px) {
+  .hamburger-menu {
+    display: none;  /* 在桌面版隱藏漢堡菜單 */
+  }
+
+  .heading {
+    display: block;  /* 顯示桌面版菜單 */
+  }
+}
+
+.hamburger-icon {
+  width: 30px;
+  height: 20px;
+  position: relative;
+  cursor: pointer;
+}
+
+.hamburger-icon span {
+  display: block;
+  position: absolute;
+  height: 3px;
+  width: 100%;
+  background: white;
+  border-radius: 3px;
+  transition: 0.25s ease-in-out;
+}
+
+.hamburger-icon span:nth-child(1) {
+  top: 0;
+}
+
+.hamburger-icon span:nth-child(2) {
+  top: 8px;
+}
+
+.hamburger-icon span:nth-child(3) {
+  top: 16px;
+}
+
+/* 懸停效果 */
+.hamburger-icon:hover span {
+  background: rgb(243, 168, 7);
+}
 </style>
+
